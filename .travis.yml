@@ -1,0 +1,4 @@
+language: cpp
+dist: jammy
+script:
+  - make

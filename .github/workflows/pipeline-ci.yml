@@ -1,0 +1,63 @@
+name: SNET-CI
+
+on:
+  push:
+    branches: [master, release/**]
+  pull_request:
+    branches: [master, release/**]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  run-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: install gcc
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+          sudo apt install -y gcc-11 g++-11 gcc-12 g++-12 gcc-13 g++-13
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 1
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 1
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 1
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 1
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 1
+
+      - name: check compiler versions
+        run: |
+          g++-11 --version
+          g++-12 --version
+          g++-13 --version
+
+      - name: build with gcc 11
+        run: |
+          sudo update-alternatives --set gcc /usr/bin/gcc-11
+          sudo update-alternatives --set g++ /usr/bin/g++-11
+          ./tcpdump_demo/build.sh
+          make -j BUILD_TYPE=${BUILD_TYPE}
+          ldd lib/*
+          ldd bin/*
+
+      - name: build with gcc 12
+        run: |
+          sudo update-alternatives --set gcc /usr/bin/gcc-12
+          sudo update-alternatives --set g++ /usr/bin/g++-12
+          ./tcpdump_demo/build.sh
+          make -j BUILD_TYPE=${BUILD_TYPE}
+          ldd lib/*
+          ldd bin/*
+
+      - name: build with gcc 13
+        run: |
+          sudo update-alternatives --set gcc /usr/bin/gcc-13
+          sudo update-alternatives --set g++ /usr/bin/g++-13
+          ./tcpdump_demo/build.sh
+          make -j BUILD_TYPE=${BUILD_TYPE}
+          ldd lib/*
+          ldd bin/*
